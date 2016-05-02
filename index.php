@@ -1,6 +1,6 @@
 <?php
 // DB connection info
-$host = "1433:aelu.database.windows.net\sqlexpress";
+$host = "1433:aelu.database.windows.net";
 $user = "aelu";
 $pwd = "#Carlos1234";
 $db = "AELU";
@@ -14,8 +14,6 @@ try{
         echo "<h2>People who are registered:</h2>";
         echo "<table>";
         echo "<tr><th>Name</th>";
-        echo "<th>Email</th>";
-        echo "<th>Date</th></tr>";
         foreach($registrants as $registrant) {
             echo "<tr><td>".$registrant['Nombre']."</td>";
         }
