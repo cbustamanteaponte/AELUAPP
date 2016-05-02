@@ -1,6 +1,6 @@
 <?php
 // DB connection info
-$host = "1433:aelu.database.windows.net";
+$host = "aelu.database.windows.net,1433";
 $user = "aelu";
 $pwd = "#Carlos1234";
 $db = "AELU";
