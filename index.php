@@ -1,8 +1,8 @@
 <?php
 // DB connection info
-$host = "aelu.database.windows.net\sqlexpress";
+$host = "1433:aelu.database.windows.net\sqlexpress";
 $user = "aelu";
-$pwd = "$Carlos1234";
+$pwd = "#Carlos1234";
 $db = "AELU";
 try{
     $conn = new PDO( "sqlsrv:Server= $host ; Database = $db ", $user, $pwd);
