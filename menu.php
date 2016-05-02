@@ -51,7 +51,7 @@ Purchase: http://themeforest.net/item/metronic-responsive-admin-dashboard-templa
    <!-- END THEME STYLES -->
 
    <!-- END THEME STYLES -->
-   <!--<link rel="shortcut icon" href="SF.ico" />
+   <!--<link rel="shortcut icon" href="SF.ico" />-->
 </head>
 <!-- END HEAD -->
 <!-- BEGIN BODY -->
@@ -61,7 +61,44 @@ Purchase: http://themeforest.net/item/metronic-responsive-admin-dashboard-templa
 
 <?php
 	include "dbconex.php";
-{ 
+/*
+	if (!isset($_SESSION["usuario"])){
+		session_destroy();
+		echo "sesion no valida";
+		echo "<br><IMG SRC='error.png'>";		
+	}
+	else */{ 
+		/*$userid = $_SESSION["usuario"];
+		$nombre = $_SESSION["nombre"];
+		$puesto = $_SESSION['puesto'];
+		$ger_corp = $_SESSION['ger_corp'];
+		$gerencia = $_SESSION['gerencia'];
+		$area = $_SESSION['area'];		
+		$unidad = $_SESSION['unidad'];		
+		$evaluador = $_SESSION['evaluador'];
+		$permiso = $_SESSION["permiso"];
+		$num_col = $_SESSION["num_col"];
+		$acceso = $_SESSION["acceso"];
+		
+		$db = "(DESCRIPTION=(ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 172.16.2.143)(PORT = 1521)))(CONNECT_DATA = (SID = M4PREP)))"; 
+
+		$conn = oci_connect("SF_EVADES","evadesprep",$db,'AL32UTF8') or die( "Could not connect to Oracle database!");
+		if (!$conn) {  
+			$e = oci_error();  
+			echo $e['message']."<br>";  
+		   //exitexit;  
+		}  
+		ini_set('charset', 'UTF-8'); 
+		ini_set('default_charset', 'UTF-8');  //UTF-8
+		
+		$sql = "select * from EVALUACION WHERE ID_RH = '$userid'";  
+		$st = oci_parse($conn, $sql);  
+		oci_execute($st);  
+		$result = oci_fetch_array($st, OCI_ASSOC);
+		$obj_fin_estado = $result['OBJ_FINAL_ESTADO'];
+		$retro_estado = $result['RETRO_ESTADO'];
+			*/	
+
 ?>
   <!-- BEGIN HEADER -->   
    <div class="header navbar navbar-inverse navbar-fixed-top">

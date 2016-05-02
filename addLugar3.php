@@ -1,5 +1,43 @@
 <!DOCTYPE html>
 <?php
+// INICIALIZO LAS VARIABLES 
+$latitud= "-12.069417105877214";
+$longitud="-77.07812547683716";
+$zoom= "17";
+$tipo_mapa = "HYBRID";
+$direccion = "";
+
+if (isset($_GET["direccion"])) $direccion=  urldecode ($_GET["direccion"]);
+else $direccion="";
+
+// LONGITUD Y LATITUD SI ESTAN COMO PARAMETROS LOS COJO
+if (isset($_GET["dir"])) $direccion = $_GET["dir"];
+if (strlen ($direccion) <= 8) $direccion =""; // SI LA DIRECCION ES MENOR QUE 8 NO LA PROCESO
+
+// LONGITUD Y LATITUD SI ESTAN COMO PARAMETROS LOS COJO
+if (isset($_GET["lon"])) $longitud= $_GET["lon"];
+if (isset($_GET["lat"])) $latitud= $_GET["lat"];
+
+// ZOOM ENTRE 0 y 19
+if (isset($_GET["zoom"])) $zoom= $_GET["zoom"];
+if (($zoom<=0) || ($zoom>=20)){ $zoom= "17";}
+
+
+// TIPO DE MAPA
+if (isset($_GET["tipo"])) $tipo_mapa= strtoupper($_GET["tipo"]);
+
+// COMPRUEBO QUE EL TIPO ES UNO DE LOS QUE ACEPTA GOOGLE
+if ($tipo_mapa == "SATELLITE") $error=0;
+else
+  if ($tipo_mapa == "ROADMAP") $error=0;
+  else 	
+    if ($tipo_mapa == "TERRAIN")$error=0;
+    else $tipo_mapa = "HYBRID";
+
+
+
+?>
+<?php
 	session_start();
 ?>
 
@@ -51,17 +89,202 @@ Purchase: http://themeforest.net/item/metronic-responsive-admin-dashboard-templa
    <!-- END THEME STYLES -->
 
    <!-- END THEME STYLES -->
-   <!--<link rel="shortcut icon" href="SF.ico" />
-</head>
+   <!--<link rel="shortcut icon" href="SF.ico" />-->
+
 <!-- END HEAD -->
 <!-- BEGIN BODY -->
 
 <!-- BEGIN BODY -->
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false">
+</script>
+<script type="text/javascript">
+console.log('aaaa');
+// VARIABLES GLOBALES JAVASCRIPT
+var geocoder;
+var marker;
+var latLng;
+var latLng2;
+var map;
+
+// INICiALIZACION DE MAPA
+function initialize() {
+  geocoder = new google.maps.Geocoder();  
+  latLng = new google.maps.LatLng(<?php echo $latitud;?> ,<?php echo $longitud;?>);
+    console.log( document.getElementById('mapCanvas') );
+  map = new google.maps.Map(document.getElementById('mapCanvas'), {
+    zoom:<?php echo $zoom;?>,
+    center: latLng,
+    mapTypeId: google.maps.MapTypeId.<?php echo $tipo_mapa;?>
+  });
+  console.log( map );
+
+
+// CREACION DEL MARCADOR  
+    marker = new google.maps.Marker({
+    position: latLng,
+    title: 'Arrastra el marcador si quieres moverlo',
+    map: map,
+    draggable: true
+  });
+ 
+ 
+
+ 
+// Escucho el CLICK sobre el mama y si se produce actualizo la posicion del marcador 
+     google.maps.event.addListener(map, 'click', function(event) {
+     updateMarker(event.latLng);
+   });
+  
+  // Inicializo los datos del marcador
+  //    updateMarkerPosition(latLng);
+     
+      geocodePosition(latLng);
+ 
+  // Permito los eventos drag/drop sobre el marcador
+  google.maps.event.addListener(marker, 'dragstart', function() {
+    updateMarkerAddress('Arrastrando...');
+  });
+ 
+  google.maps.event.addListener(marker, 'drag', function() {
+    updateMarkerStatus('Arrastrando...');
+    updateMarkerPosition(marker.getPosition());
+  });
+ 
+  google.maps.event.addListener(marker, 'dragend', function() {
+    updateMarkerStatus('Arrastre finalizado');
+    geocodePosition(marker.getPosition());
+  });
+  
+
+ 
+}
+
+
+// Permito la gesti¢n de los eventos DOM
+console.log('sape');
+google.maps.event.addDomListener(window, 'load', initialize);
+
+// ESTA FUNCION OBTIENE LA DIRECCION A PARTIR DE LAS COORDENADAS POS
+function geocodePosition(pos) {
+  geocoder.geocode({
+    latLng: pos
+  }, function(responses) {
+    if (responses && responses.length > 0) {
+      updateMarkerAddress(responses[0].formatted_address);
+    } else {
+      updateMarkerAddress('No puedo encontrar esta direccion.');
+    }
+  });
+}
+
+// OBTIENE LA DIRECCION A PARTIR DEL LAT y LON DEL FORMULARIO
+function codeLatLon() { 
+      str= document.form_mapa.longitud.value+" , "+document.form_mapa.latitud.value;
+      latLng2 = new google.maps.LatLng(document.form_mapa.latitud.value ,document.form_mapa.longitud.value);
+      marker.setPosition(latLng2);
+      map.setCenter(latLng2);
+      geocodePosition (latLng2);
+      // document.form_mapa.direccion.value = str+" OK";
+}
+
+// OBTIENE LAS COORDENADAS DESDE lA DIRECCION EN LA CAJA DEL FORMULARIO
+function codeAddress() {
+        var address = document.form_mapa.direccion.value;
+          geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+             updateMarkerPosition(results[0].geometry.location);
+             marker.setPosition(results[0].geometry.location);
+             map.setCenter(results[0].geometry.location);
+           } else {
+            alert('ERROR : ' + status);
+          }
+        });
+      }
+
+// OBTIENE LAS COORDENADAS DESDE lA DIRECCION EN LA CAJA DEL FORMULARIO
+function codeAddress2 (address) {
+          
+          geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+             updateMarkerPosition(results[0].geometry.location);
+             marker.setPosition(results[0].geometry.location);
+             map.setCenter(results[0].geometry.location);
+             document.form_mapa.direccion.value = address;
+           } else {
+            alert('ERROR : ' + status);
+          }
+        });
+      }
+
+function updateMarkerStatus(str) {
+  document.form_mapa.direccion.value = str;
+}
+
+// RECUPERO LOS DATOS LON LAT Y DIRECCION Y LOS PONGO EN EL FORMULARIO
+function updateMarkerPosition (latLng) {
+  document.form_mapa.longitud.value =latLng.lng();
+  document.form_mapa.latitud.value = latLng.lat();
+}
+
+function updateMarkerAddress(str) {
+  document.form_mapa.direccion.value = str;
+}
+
+// ACTUALIZO LA POSICION DEL MARCADOR
+function updateMarker(location) {
+        marker.setPosition(location);
+        updateMarkerPosition(location);
+        geocodePosition(location);
+      }
+
+
+
+
+
+</script>
+</head>
 <body class="page-header-fixed">
 
 <?php
 	include "dbconex.php";
-{ 
+/*
+	if (!isset($_SESSION["usuario"])){
+		session_destroy();
+		echo "sesion no valida";
+		echo "<br><IMG SRC='error.png'>";		
+	}
+	else */{ 
+		/*$userid = $_SESSION["usuario"];
+		$nombre = $_SESSION["nombre"];
+		$puesto = $_SESSION['puesto'];
+		$ger_corp = $_SESSION['ger_corp'];
+		$gerencia = $_SESSION['gerencia'];
+		$area = $_SESSION['area'];		
+		$unidad = $_SESSION['unidad'];		
+		$evaluador = $_SESSION['evaluador'];
+		$permiso = $_SESSION["permiso"];
+		$num_col = $_SESSION["num_col"];
+		$acceso = $_SESSION["acceso"];
+		
+		$db = "(DESCRIPTION=(ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 172.16.2.143)(PORT = 1521)))(CONNECT_DATA = (SID = M4PREP)))"; 
+
+		$conn = oci_connect("SF_EVADES","evadesprep",$db,'AL32UTF8') or die( "Could not connect to Oracle database!");
+		if (!$conn) {  
+			$e = oci_error();  
+			echo $e['message']."<br>";  
+		   //exitexit;  
+		}  
+		ini_set('charset', 'UTF-8'); 
+		ini_set('default_charset', 'UTF-8');  //UTF-8
+		
+		$sql = "select * from EVALUACION WHERE ID_RH = '$userid'";  
+		$st = oci_parse($conn, $sql);  
+		oci_execute($st);  
+		$result = oci_fetch_array($st, OCI_ASSOC);
+		$obj_fin_estado = $result['OBJ_FINAL_ESTADO'];
+		$retro_estado = $result['RETRO_ESTADO'];
+			*/	
+
 ?>
   <!-- BEGIN HEADER -->   
    <div class="header navbar navbar-inverse navbar-fixed-top">
@@ -200,7 +423,71 @@ Purchase: http://themeforest.net/item/metronic-responsive-admin-dashboard-templa
       </div>
       <!-- END SIDEBAR -->
       <div class="page-content">
-		 <div id="resultado"><?php 	if(!isset($_SESSION["page_id"])){ echo'<center><img src="AELU.GIF" width="360" height="270"/></center>'; }?></div> <!-- Se actualizara con elección.-->
+		 <div id="resultado">
+		 <div class="portlet box blue">
+					  <div class="portlet-title">
+						 <div class="caption">
+							<i class="icon-pencil"></i>Añadir nuevo
+						 </div>
+					  </div>
+					  <div class="portlet-body form">
+					<!--	<form role="form" action="addLugarProc.php" method="post">
+							<div class="form-body">
+							   <div class="form-group">
+								  <label for="exampleInputEmail1">Nombre:</label>
+								  <input class="form-control" name="nombre" placeholder="Nombre del lugar" required>
+							   </div>
+							   <div class="form-group">
+								  <label for="exampleInputEmail1">Latitud:</label>
+								  <input class="form-control" name="latitud" placeholder="Latitud del lugar" required>
+							   </div>
+							   <div class="form-group">
+								  <label for="exampleInputEmail1">Longitud:</label>
+								  <input class="form-control" name="longitud" placeholder="Longitud del lugar" required>
+							   </div>
+							</div>
+							<div class="form-actions">
+							   <button type="submit" class="btn" style="background-color:#4CAD33; color:white">Guardar</button>
+							                            
+							</div>
+						 </form> 
+					-->
+					
+				 <form role="form" name="form_mapa" action="addLugarProc.php" method="post" enctype="multipart/form-data">			  
+				  <div class="form-body">
+							   <div class="form-group">
+								  <label for="exampleInputEmail1">Nombre:</label>
+								  <input class="form-control" name="nombre" placeholder="Nombre del lugar" required>
+							   </div>
+							   <div class="form-group">
+								  <label for="exampleInputEmail1">Latitud:</label>
+								  <input class="form-control" name="latitud" placeholder="Latitud del lugar" required>
+							   </div>
+							   <div class="form-group">
+								  <label for="exampleInputEmail1">Longitud:</label>
+								  <input class="form-control" name="longitud" placeholder="Longitud del lugar" required>
+							   </div>
+							   <div class="form-group">
+								<label for="exampleInputEmail1">Dirección:</label>
+								<input class="form-control" name="direccion" id="direccion"  value="<?php echo $direccion;?>">
+								<input type="button" value="Buscar Calle" onclick="codeAddress()">
+							  </div>
+					</div>
+					
+							<div class="form-actions">
+							   <button type="submit" class="btn" style="background-color:#4CAD33; color:white">Guardar</button>
+							                            
+							</div>
+					
+					
+					 </form>
+				     
+				<div id="mapCanvas" style = "height: 500px; width: 500px"></div>
+				</div> 
+	</div>
+    
+		 
+		 </div> <!-- Se actualizara con elección.-->
 	  </div>
    </div>
    <!-- END CONTAINER -->
@@ -266,6 +553,149 @@ Purchase: http://themeforest.net/item/metronic-responsive-admin-dashboard-templa
    <script src="assets/scripts/app.js"></script>
    <script src="assets/scripts/form-wizard.js"></script>     
    <script src="assets/scripts/form-components.js"></script>   
+   <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false">
+</script>
+<script type="text/javascript">
+console.log('aaaa');
+// VARIABLES GLOBALES JAVASCRIPT
+var geocoder;
+var marker;
+var latLng;
+var latLng2;
+var map;
+
+// INICiALIZACION DE MAPA
+function initialize() {
+  geocoder = new google.maps.Geocoder();  
+  latLng = new google.maps.LatLng(<?php echo $latitud;?> ,<?php echo $longitud;?>);
+    console.log( document.getElementById('mapCanvas') );
+  map = new google.maps.Map(document.getElementById('mapCanvas'), {
+    zoom:<?php echo $zoom;?>,
+    center: latLng,
+    mapTypeId: google.maps.MapTypeId.<?php echo $tipo_mapa;?>
+  });
+  console.log( map );
+
+
+// CREACION DEL MARCADOR  
+    marker = new google.maps.Marker({
+    position: latLng,
+    title: 'Arrastra el marcador si quieres moverlo',
+    map: map,
+    draggable: true
+  });
+ 
+ 
+
+ 
+// Escucho el CLICK sobre el mama y si se produce actualizo la posicion del marcador 
+     google.maps.event.addListener(map, 'click', function(event) {
+     updateMarker(event.latLng);
+   });
+  
+  // Inicializo los datos del marcador
+  //    updateMarkerPosition(latLng);
+     
+      geocodePosition(latLng);
+ 
+  // Permito los eventos drag/drop sobre el marcador
+  google.maps.event.addListener(marker, 'dragstart', function() {
+    updateMarkerAddress('Arrastrando...');
+  });
+ 
+  google.maps.event.addListener(marker, 'drag', function() {
+    updateMarkerStatus('Arrastrando...');
+    updateMarkerPosition(marker.getPosition());
+  });
+ 
+  google.maps.event.addListener(marker, 'dragend', function() {
+    updateMarkerStatus('Arrastre finalizado');
+    geocodePosition(marker.getPosition());
+  });
+  
+
+ 
+}
+
+
+// Permito la gesti¢n de los eventos DOM
+console.log('sape');
+google.maps.event.addDomListener(window, 'load', initialize);
+
+// ESTA FUNCION OBTIENE LA DIRECCION A PARTIR DE LAS COORDENADAS POS
+function geocodePosition(pos) {
+  geocoder.geocode({
+    latLng: pos
+  }, function(responses) {
+    if (responses && responses.length > 0) {
+      updateMarkerAddress(responses[0].formatted_address);
+    } else {
+      updateMarkerAddress('No puedo encontrar esta direccion.');
+    }
+  });
+}
+
+// OBTIENE LA DIRECCION A PARTIR DEL LAT y LON DEL FORMULARIO
+function codeLatLon() { 
+      str= document.form_mapa.longitud.value+" , "+document.form_mapa.latitud.value;
+      latLng2 = new google.maps.LatLng(document.form_mapa.latitud.value ,document.form_mapa.longitud.value);
+      marker.setPosition(latLng2);
+      map.setCenter(latLng2);
+      geocodePosition (latLng2);
+      // document.form_mapa.direccion.value = str+" OK";
+}
+
+// OBTIENE LAS COORDENADAS DESDE lA DIRECCION EN LA CAJA DEL FORMULARIO
+function codeAddress() {
+        var address = document.form_mapa.direccion.value;
+          geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+             updateMarkerPosition(results[0].geometry.location);
+             marker.setPosition(results[0].geometry.location);
+             map.setCenter(results[0].geometry.location);
+           } else {
+            alert('ERROR : ' + status);
+          }
+        });
+      }
+
+// OBTIENE LAS COORDENADAS DESDE lA DIRECCION EN LA CAJA DEL FORMULARIO
+function codeAddress2 (address) {
+          
+          geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+             updateMarkerPosition(results[0].geometry.location);
+             marker.setPosition(results[0].geometry.location);
+             map.setCenter(results[0].geometry.location);
+             document.form_mapa.direccion.value = address;
+           } else {
+            alert('ERROR : ' + status);
+          }
+        });
+      }
+
+function updateMarkerStatus(str) {
+  document.form_mapa.direccion.value = str;
+}
+
+// RECUPERO LOS DATOS LON LAT Y DIRECCION Y LOS PONGO EN EL FORMULARIO
+function updateMarkerPosition (latLng) {
+  document.form_mapa.longitud.value =latLng.lng();
+  document.form_mapa.latitud.value = latLng.lat();
+}
+
+function updateMarkerAddress(str) {
+  document.form_mapa.direccion.value = str;
+}
+
+// ACTUALIZO LA POSICION DEL MARCADOR
+function updateMarker(location) {
+        marker.setPosition(location);
+        updateMarkerPosition(location);
+        geocodePosition(location);
+      }
+
+</script>
     <script>
 			function loadRed(varPage)
 			{
