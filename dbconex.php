@@ -4,8 +4,8 @@
 							$serverName = "aelu.database.windows.net"; //serverName\instanceName
 
 				$serverName = "tcp:aelu.database.windows.net, 1433";
-				$connectionOptions = array( "Database" => "aelu_db", 
-											"UID" => "aelu@aelu",
+				$connectionOptions = array( "Database" => "AELU", 
+											"UID" => "aelu",
 											"PWD" => "#Carlos1234");
 				$conn = sqlsrv_connect($serverName, $connectionOptions);
 
@@ -15,7 +15,7 @@
 				echo "ggggwwww.<br />";
 				return $conn;
 			}else{
-				 echo "Conexión no se pudo establecer.<br />";
+				 echo "ConexiÃ³n no se pudo establecer.<br />";
 				 die( print_r( sqlsrv_errors(), true));
 				return 0;
 			}
